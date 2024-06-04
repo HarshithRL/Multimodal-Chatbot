@@ -4,25 +4,39 @@ from langchain_openai import ChatOpenAI
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
+# Load the OpenAI API key from environment variables
+os.environ['OPENAI_API_KEY']=os.getenv("OPENAI_API_KEY")
 
 # Define a request model using Pydantic
 class QuestionRequest(BaseModel):
     question: str
 
-os.environ['OPENAI_API_KEY']=os.getenv("OPENAI_API_KEY")
+
+# Define a FastAPI object
 
 app=FastAPI()
 
+# Initialize the OpenAI GPT-4o model
+
 llm=ChatOpenAI(model="gpt-4o", max_tokens=1024)
 
-path_vector_store=r"C:\Users\HarshithR\PycharmProjects\erabrajesh\Refined_code\faiss_index"
+# Path of the Vector Index
+
+path_vector_store=r"\faiss_index"
+
+
+# Instantiate the Assistant class by chaining both Vector Index & Chat Model
 
 bot=chatbot.Assistant(chat_model=llm,path=path_vector_store)
+
+
+# Welcome route
 
 @app.get("/")
 async def read_root():
     return {"message": "Welcome to the Chatbot API"}
 
+# Route to handle questions
 
 @app.post("/ask")
 async def ask_question(request: QuestionRequest):
