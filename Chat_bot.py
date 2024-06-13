@@ -30,7 +30,7 @@ class Assistant:
             self.path,
             embeddings=OpenAIEmbeddings(),
             allow_dangerous_deserialization=True) # Allow dangerous deserialization because we are using a local version of the FAISS index
-        return vector_store
+        return vector_store.as_retriever()
 
     def get_conve_chain(self):
         """
@@ -83,7 +83,7 @@ class Assistant:
         generating a detailed response, and fetching related video recommendations .
         """
         # Retrieve relevant documents from the vector store
-        relevant_docs = self.vectore.similarity_search(question)
+        relevant_docs = self.vectore.invoke(question)
         context = ""
         relevant_images = []
         chain = self.get_conve_chain()
@@ -102,9 +102,9 @@ class Assistant:
         result = chain({'context': context, 'question': question}, return_only_outputs=True)
 
         # Fetch video recommendations from YouTube
-        video_recommendations = self.get_video_recommendations(f"find the video in english related to {question}")
+        # video_recommendations = self.get_video_recommendations(f"find the video in english related to {question}")
 
-        return result, relevant_images,video_recommendations
+        return result, relevant_images
 
 
 
