@@ -41,11 +41,12 @@ async def read_root():
 @app.post("/ask")
 async def ask_question(request: QuestionRequest):
     try:
-        answer, relevant_images= bot.answer(request.question)
+        answer, relevant_images,video_recommendations= bot.answer(request.question)
+
         return {
             "answer": answer,
-            "relevant_images": relevant_images
-            # "video_recommendations": video_recommendations
+            "relevant_images": relevant_images,
+            "video_recommendations": video_recommendations
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

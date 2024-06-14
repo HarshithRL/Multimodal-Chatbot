@@ -51,9 +51,11 @@ class Assistant:
         prompt_template_final = prompt_template + prompt_suffic
         prompt = PromptTemplate(template=prompt_template_final, input_variables=["context", "question"],
                                 callbacks=[StrOutputParser])
-
+        llm = self.chat_model
+        output_parser=StrOutputParser()
         # chain = load_qa_chain(self.chat_model, chain_type="stuff", prompt=prompt)
-        chain = LLMChain(llm=self.chat_model, prompt=prompt)
+        # chain = LLMChain(llm=self.chat_model, prompt=prompt)
+        chain=prompt | llm | output_parser
         return chain
 
 
@@ -99,12 +101,12 @@ class Assistant:
                 relevant_images.append(d.metadata['original_content'])
 
         # Generate the answer using the LLMChain
-        result = chain({'context': context, 'question': question}, return_only_outputs=True)
+        result = chain.invoke({'context': context, 'question': question})
 
         # Fetch video recommendations from YouTube
-        # video_recommendations = self.get_video_recommendations(f"find the video in english related to {question}")
+        video_recommendations = self.get_video_recommendations(f"find the video related to {question}")
 
-        return result, relevant_images
+        return result, relevant_images,video_recommendations
 
 
 
