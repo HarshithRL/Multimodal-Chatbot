@@ -35,7 +35,7 @@ pipeline {
                     sh "docker rm ${DOCKER_CONTAINER_NAME} || true"
                     
                     // Run the new container
-                    sh "docker run -d -e OPENAI_API_KEY=${OPENAI_API_KEY} -e DEVELOPER_KEY=${YOUTUBE_DEVELOPER_KEY} --name ${DOCKER_CONTAINER_NAME} -p 8000:8000 ${DOCKER_IMAGE}"
+                    sh('docker run -d -e OPENAI_API_KEY=$OPENAI_API_KEY -e DEVELOPER_KEY=$YOUTUBE_DEVELOPER_KEY --name $DOCKER_CONTAINER_NAME -p 8000:8000 $DOCKER_IMAGE')
                 }
             }
         }
