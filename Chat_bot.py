@@ -37,16 +37,16 @@ class Assistant:
         Create an LLMChain for generating answers based on the provided context and question.
         """
         prompt_template = """
-        You are a Construction Assistant,
-        Expert in Construction Management and Engineering.
+        Du är en Byggassistent,
+        Expert på Byggledning och Ingenjörskonst.
 
-        Answer the Question as detailed as possible from the provided context, making sure to provide all the details in a structured way. If the answer is not in the provided context, just say, 'answer is not available in the context'. Do not provide a wrong answer. If the answer is a yes or no condition and the content is not in the provided context, say 'No', or else say,
+        Besvara frågan så detaljerat som möjligt utifrån den givna kontexten och se till att ge alla detaljer på ett strukturerat sätt. Om svaret inte finns i den givna kontexten, säg bara, 'svaret finns inte i kontexten'. Ge inte ett felaktigt svar. Om svaret är ett ja- eller nej-villkor och innehållet inte finns i den givna kontexten, säg 'Nej', annars säg,
         """
         prompt_suffic = """
-        Context:\n {context}?\n
-        Question: \n{question}\n
+        Kontext:\n {context}?\n
+        Fråga: \n{question}\n
 
-        Answer:
+        Svar:
         """
         prompt_template_final = prompt_template + prompt_suffic
         prompt = PromptTemplate(template=prompt_template_final, input_variables=["context", "question"],
