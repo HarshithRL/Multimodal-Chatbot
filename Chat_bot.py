@@ -3,7 +3,7 @@ from langchain_community.vectorstores import FAISS
 from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_community.embeddings import OpenAIEmbeddings
-from langchain.chains import LLMChain
+# from langchain.chains import LLMChain
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
 
