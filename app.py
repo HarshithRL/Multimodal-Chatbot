@@ -22,7 +22,7 @@ llm=ChatOpenAI(model="gpt-4o", max_tokens=1024)
 
 # Path of the Vector Index
 
-path_vector_store = r".\faiss_index"
+path_vector_store = r"./faiss_index"
 
 
 # Instantiate the Assistant class by chaining both Vector Index & Chat Model
