@@ -3,7 +3,7 @@ from langchain_community.vectorstores import FAISS
 from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_community.embeddings import OpenAIEmbeddings
-# from langchain.chains import LLMChain
+from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
 
@@ -63,9 +63,11 @@ class Assistant:
         """
         Fetch video recommendations from YouTube based on the query.
         """
+        llm = ChatOpenAI(model="gpt-4o", max_tokens=1024)
+        optimizer_query = llm.invoke(f'Give me a relevant search title for the given question in sewden in english to search in youtube {query}')
         youtube = build('youtube', 'v3', developerKey=os.getenv('DEVELOPER_KEY'))
         search_response = youtube.search().list(
-            q=query,
+            q=optimizer_query.content,
             part='snippet',
             maxResults=max_results,
             type='video'
@@ -102,7 +104,6 @@ class Assistant:
 
         # Generate the answer using the LLMChain
         result = chain.invoke({'context': context, 'question': question})
-
         # Fetch video recommendations from YouTube
         video_recommendations = self.get_video_recommendations(f"find the video related to {question}")
 
