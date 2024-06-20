@@ -6,7 +6,7 @@ from langchain_community.embeddings import OpenAIEmbeddings
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
-
+from langdetect import detect
 load_dotenv()
 
 os.environ['OPENAI_API_KEY']=os.getenv('OPENAI_API_KEY')
@@ -31,6 +31,23 @@ class Assistant:
             embeddings=OpenAIEmbeddings(),
             allow_dangerous_deserialization=True) # Allow dangerous deserialization because we are using a local version of the FAISS index
         return vector_store.as_retriever()
+    def lang_dectect(self,query):
+        # lang=detect(query)
+        lang=detect(query)
+        if lang=='en':
+            llm = ChatOpenAI(model="gpt-4o", max_tokens=1024)
+            query=llm.invoke(f'translate the given English context to Sewden without changing its meaning {query}')
+            return query.content
+        else:
+            return query
+    def translate_content(self,query,content):
+        lang=detect(query)
+        if lang=='en':
+            llm = ChatOpenAI(model="gpt-4o", max_tokens=1024)
+            content = llm.invoke(f'translate the given Sewden content to English with out changing meaning of the content {content}')
+            return content.content
+        else:
+            return content
 
     def get_conve_chain(self):
         """
@@ -87,7 +104,8 @@ class Assistant:
         generating a detailed response, and fetching related video recommendations .
         """
         # Retrieve relevant documents from the vector store
-        relevant_docs = self.vectore.invoke(question)
+        query=self.lang_dectect(question)
+        relevant_docs = self.vectore.invoke(query)
         context = ""
         relevant_images = []
         chain = self.get_conve_chain()
@@ -103,7 +121,8 @@ class Assistant:
                 relevant_images.append(d.metadata['original_content'])
 
         # Generate the answer using the LLMChain
-        result = chain.invoke({'context': context, 'question': question})
+        result = chain.invoke({'context': context, 'question': query})
+        result=self.translate_content(question,result)
         # Fetch video recommendations from YouTube
         video_recommendations = self.get_video_recommendations(f"find the video related to {question}")
 
