@@ -124,9 +124,9 @@ class Assistant:
         result = chain.invoke({'context': context, 'question': query})
         result=self.translate_content(question,result)
         # Fetch video recommendations from YouTube
-        video_recommendations = self.get_video_recommendations(f"find the video related to {question}")
+        # video_recommendations = self.get_video_recommendations(f"find the video related to {question}")
 
-        return result, relevant_images,video_recommendations
+        return result, relevant_images
 
 
 
