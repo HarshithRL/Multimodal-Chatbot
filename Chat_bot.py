@@ -3,10 +3,10 @@ from langchain_community.vectorstores import FAISS
 from langchain.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from langchain_community.embeddings import OpenAIEmbeddings
-from langchain.chains import LLMChain
+from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 from googleapiclient.discovery import build
-
+from langdetect import detect
 load_dotenv()
 
 os.environ['OPENAI_API_KEY']=os.getenv('OPENAI_API_KEY')
@@ -30,30 +30,49 @@ class Assistant:
             self.path,
             embeddings=OpenAIEmbeddings(),
             allow_dangerous_deserialization=True) # Allow dangerous deserialization because we are using a local version of the FAISS index
-        return vector_store
+        return vector_store.as_retriever()
+    def lang_dectect(self,query):
+        # lang=detect(query)
+        lang=detect(query)
+        if lang=='en':
+            llm = ChatOpenAI(model="gpt-4o", max_tokens=1024)
+            query=llm.invoke(f'translate the given English context to Sewden without changing its meaning {query}')
+            return query.content
+        else:
+            return query
+    def translate_content(self,query,content):
+        lang=detect(query)
+        if lang=='en':
+            llm = ChatOpenAI(model="gpt-4o", max_tokens=1024)
+            content = llm.invoke(f'translate the given Sewden content to English with out changing meaning of the content {content}')
+            return content.content
+        else:
+            return content
 
     def get_conve_chain(self):
         """
         Create an LLMChain for generating answers based on the provided context and question.
         """
         prompt_template = """
-        You are a Construction Assistant,
-        Expert in Construction Management and Engineering.
+        Du är en Byggassistent,
+        Expert på Byggledning och Ingenjörskonst.
 
-        Answer the Question as detailed as possible from the provided context, making sure to provide all the details in a structured way. If the answer is not in the provided context, just say, 'answer is not available in the context'. Do not provide a wrong answer. If the answer is a yes or no condition and the content is not in the provided context, say 'No', or else say,
+        Besvara frågan så detaljerat som möjligt utifrån den givna kontexten och se till att ge alla detaljer på ett strukturerat sätt. Om svaret inte finns i den givna kontexten, säg bara, 'svaret finns inte i kontexten'. Ge inte ett felaktigt svar. Om svaret är ett ja- eller nej-villkor och innehållet inte finns i den givna kontexten, säg 'Nej', annars säg,
         """
         prompt_suffic = """
-        Context:\n {context}?\n
-        Question: \n{question}\n
+        Kontext:\n {context}?\n
+        Fråga: \n{question}\n
 
-        Answer:
+        Svar:
         """
         prompt_template_final = prompt_template + prompt_suffic
         prompt = PromptTemplate(template=prompt_template_final, input_variables=["context", "question"],
                                 callbacks=[StrOutputParser])
-
+        llm = self.chat_model
+        output_parser=StrOutputParser()
         # chain = load_qa_chain(self.chat_model, chain_type="stuff", prompt=prompt)
-        chain = LLMChain(llm=self.chat_model, prompt=prompt)
+        # chain = LLMChain(llm=self.chat_model, prompt=prompt)
+        chain=prompt | llm | output_parser
         return chain
 
 
@@ -61,9 +80,11 @@ class Assistant:
         """
         Fetch video recommendations from YouTube based on the query.
         """
+        llm = ChatOpenAI(model="gpt-4o", max_tokens=1024)
+        optimizer_query = llm.invoke(f'Give me a relevant search title for the given question in sewden in english to search in youtube {query}')
         youtube = build('youtube', 'v3', developerKey=os.getenv('DEVELOPER_KEY'))
         search_response = youtube.search().list(
-            q=query,
+            q=optimizer_query.content,
             part='snippet',
             maxResults=max_results,
             type='video'
@@ -83,7 +104,8 @@ class Assistant:
         generating a detailed response, and fetching related video recommendations .
         """
         # Retrieve relevant documents from the vector store
-        relevant_docs = self.vectore.similarity_search(question)
+        query=self.lang_dectect(question)
+        relevant_docs = self.vectore.invoke(query)
         context = ""
         relevant_images = []
         chain = self.get_conve_chain()
@@ -99,12 +121,12 @@ class Assistant:
                 relevant_images.append(d.metadata['original_content'])
 
         # Generate the answer using the LLMChain
-        result = chain({'context': context, 'question': question}, return_only_outputs=True)
-
+        result = chain.invoke({'context': context, 'question': query})
+        result=self.translate_content(question,result)
         # Fetch video recommendations from YouTube
-        video_recommendations = self.get_video_recommendations(f"find the video in english related to {question}")
+        # video_recommendations = self.get_video_recommendations(f"find the video related to {question}")
 
-        return result, relevant_images,video_recommendations
+        return result, relevant_images
 
 
 

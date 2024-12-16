@@ -22,7 +22,7 @@ llm=ChatOpenAI(model="gpt-4o", max_tokens=1024)
 
 # Path of the Vector Index
 
-path_vector_store=r"\faiss_index"
+path_vector_store = r"./faiss_index"
 
 
 # Instantiate the Assistant class by chaining both Vector Index & Chat Model
@@ -41,18 +41,19 @@ async def read_root():
 @app.post("/ask")
 async def ask_question(request: QuestionRequest):
     try:
-        answer, relevant_images, video_recommendations = bot.answer(request.question)
+        answer, relevant_images= bot.answer(request.question)
+
         return {
             "answer": answer,
-            "relevant_images": relevant_images,
-            "video_recommendations": video_recommendations
+            "relevant_images": relevant_images
+            # "video_recommendations": video_recommendations
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 # Run the application
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+# if __name__ == "__main__":
+#     import uvicorn
+#     uvicorn.run(app, host="0.0.0.0", port=8000)
 
 #uvicorn app:app --reload
